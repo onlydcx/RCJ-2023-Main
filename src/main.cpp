@@ -14,6 +14,8 @@ VectorFloat gravity;
 float ypr[3];
 int Gyro_X = -112, Gyro_Y = 63, Gyro_Z = -13, Accel_Z = 1579;
 
+char BallDebug[64];
+
 int BallAngle = 0, BallStr = 0;
 int BallAngle_UC = 0;
 
@@ -25,7 +27,7 @@ int MotorPins[4][2] = {
    {4,5}, {2,3}, {6,7}, {8,9}
 };
 
-int tmpBallStr[64] = {0};
+int tmpBallStr[16] = {0};
 
 void IRUpdate() {
    int fixconst = -5;
@@ -41,10 +43,11 @@ void IRUpdate() {
    float tmpBallAngle = atan2(VectorX,VectorY) * (180 / PI);
    tmpBallAngle += 180;
    if(tmpBallAngle < 0) tmpBallAngle += 360;
-   BallStr = tmpBallStr[(int)(tmpBallAngle / 22.5)];
    BallAngle = (int)tmpBallAngle + fixconst;
+   BallStr = tmpBallStr[(int)(tmpBallAngle / 22.5)];
    int order = (360 - BallAngle);
    BallAngle_UC = (order > 360)? order -= 360: order;
+   sprintf(BallDebug,"角度:%d 距離:%d",BallAngle,BallStr);
 }
 
 void Motor(int num, int speed) {
@@ -168,6 +171,7 @@ void setup() {
 }
 
 void loop() {
-   IRUpdate();
-   Motor(BallAngle_UC);
+   // IRUpdate();
+   // Serial.println(BallDebug);
+   // Serial.println(pulseIn(23,LOW));
 }
