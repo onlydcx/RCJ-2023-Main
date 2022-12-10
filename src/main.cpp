@@ -16,6 +16,8 @@ int Gyro_X = -112, Gyro_Y = 63, Gyro_Z = -13, Accel_Z = 1579;
 
 char BallDebug[64];
 
+int speed = 0;
+
 int BallAngle = 0, BallStr = 0;
 int BallAngle_UC = 0;
 
@@ -30,7 +32,7 @@ int MotorPins[4][2] = {
 int tmpBallStr[16] = {0};
 
 void IRUpdate() {
-   int fixconst = -5;
+   int fixconst = 0;
    double VectorX = 0, VectorY = 0;
    for(int i = 0; i < 16; i++) {
       int strength = pulseIn(BallPins[i],LOW,833);
@@ -65,9 +67,11 @@ void Motor(int num, int speed) {
    }
 }
 
-void MotorFree(int num) {
-   analogWrite(MotorPins[num-1][0],0);
-   analogWrite(MotorPins[num-1][1],0);
+void MotorFree() {
+   for(int i = 0; i < 4; i++) {
+      analogWrite(MotorPins[i-1][0],0);
+      analogWrite(MotorPins[i-1][1],0);
+   }
 }
 
 int GyroGet(void) {
@@ -119,39 +123,41 @@ void Gryo_init() {
 
 void turnFront() {
    int GY = GyroGet();
-   int speed = -100;
-   int diff = 3;
-   if((diff < GY) && (180 > GY)) {
-      Motor(1,speed); // 左前
-      Motor(2,speed); // 右前
-      Motor(3,speed); // 左後
-      Motor(4,speed); // 右後
-   }
-   else if ((180 <= GY) && ((360 - diff) > GY)) {
-      Motor(1,-speed); // 左前
-      Motor(2,-speed); // 右前
-      Motor(3,-speed); // 左後
-      Motor(4,-speed); // 右後
-   }
-   else {
-      Motor(1,0); // 左前
-      Motor(2,0); // 右前
-      Motor(3,0); // 左後
-      Motor(4,0); // 右後
+   speed = -50;
+   int diff = 90;
+   while((GY > diff) || ((360 - diff) < GY)) {
+      if(GY < 180) {
+         Motor(1,speed); // 左前
+         Motor(2,speed); // 右前
+         Motor(3,speed); // 左後
+         Motor(4,speed); // 右後
+      }
+      else {
+         Motor(1,-speed); // 左前
+         Motor(2,-speed); // 右前
+         Motor(3,-speed); // 左後
+         Motor(4,-speed); // 右後
+      }
+      if((GyroGet() < diff) || (GyroGet() > (360 - diff))) break;
    }
 }
 
 void Motor(int angle) {
+   int gy = GyroGet(), addP = 0;
    int MotorAngle[4] = {40, 140, 225, 315};
    float MPwrVector[4] = {0};
-   angle += 90;
-
+   angle = 360 - angle + 90;
+   if((gy > 5) && (gy <= 180)) addP = -5;
+   else if ((gy > 180) && (gy < 355)) addP = 5;
    for(int i = 0; i < 4; i++) {
       float __Angle = (MotorAngle[i] + angle) * (PI / 180);
       MPwrVector[i] = cos(__Angle);
       if((i == 1) || (i == 3)) MPwrVector[i] *= -1;
-      Motor(i+1, MPwrVector[i] * 100);
+      Motor(i+1, MPwrVector[i] * speed + addP);
+      // Serial.print(MPwrVector[i]);
+      // Serial.print("  ");
    }
+   // Serial.println("");
 }
 
 void setup() {
@@ -166,12 +172,24 @@ void setup() {
          pinMode(MotorPins[i][j],OUTPUT);
          analogWriteFrequency(MotorPins[i][j],200000);
       }
-      MotorFree(i);
    }
+   MotorFree();
 }
 
 void loop() {
-   // IRUpdate();
-   // Serial.println(BallDebug);
-   // Serial.println(pulseIn(23,LOW));
+   // MotorFree();
+
+   IRUpdate();
+   turnFront();
+   Serial.println(BallAngle);
+   speed = 130;
+   if((BallAngle > 10) && (BallAngle <= 180)) {
+      Motor(BallAngle + 40);
+   }
+   else if ((BallAngle > 180) && (BallAngle < 350)) {
+      Motor(BallAngle - 40);
+   }
+   else {
+      Motor(0);
+   }
 }
