@@ -14,12 +14,19 @@ VectorFloat gravity;
 float ypr[3];
 int Gyro_X = -112, Gyro_Y = 63, Gyro_Z = -13, Accel_Z = 1579;
 
+
 char BallDebug[64];
+
+int nearAngle = 0;
+
+int BallZeroQTY = 0;
 
 int speed = 0;
 
 int BallAngle = 0, BallStr = 0;
 int BallAngle_UC = 0;
+
+
 
 int BallPins[16] = {
    23,32,11,38,20,31,12,39,21,30,36,28,22,33,37,29
@@ -33,6 +40,7 @@ int tmpBallStr[16] = {0};
 
 void IRUpdate() {
    int fixconst = 0;
+   int __BallZeroQTY = 0;
    double VectorX = 0, VectorY = 0;
    for(int i = 0; i < 16; i++) {
       int strength = pulseIn(BallPins[i],LOW,833);
@@ -40,13 +48,24 @@ void IRUpdate() {
       VectorX += cos(sensorDeg) * strength;
       VectorY += sin(sensorDeg) * strength;
       tmpBallStr[i] = strength;
+      if(strength == 0) __BallZeroQTY++;
+      // Serial.print(strength);
+      // Serial.print("  ");
    }
+   BallZeroQTY = __BallZeroQTY;
    VectorX *= -1, VectorY *= -1;
    float tmpBallAngle = atan2(VectorX,VectorY) * (180 / PI);
    tmpBallAngle += 180;
    if(tmpBallAngle < 0) tmpBallAngle += 360;
    BallAngle = (int)tmpBallAngle + fixconst;
-   BallStr = tmpBallStr[(int)(tmpBallAngle / 22.5)];
+
+   nearAngle = (int)(tmpBallAngle / 22.5);
+   nearAngle = 16 - nearAngle + 4;
+   if(nearAngle > 16) nearAngle -= 16;
+
+   BallStr = tmpBallStr[nearAngle - 1];
+   // BallStr = pulseIn(BallPins[nearAngle - 1],LOW,833);
+
    int order = (360 - BallAngle);
    BallAngle_UC = (order > 360)? order -= 360: order;
    sprintf(BallDebug,"角度:%d 距離:%d",BallAngle,BallStr);
@@ -121,9 +140,15 @@ void Gryo_init() {
    packetSize = mpu.dmpGetFIFOPacketSize();
 }
 
+void roll(int dir) {
+   for(int i = 0; i < 4; i++) {
+      Motor(i+1,-dir);
+   }
+}
+
 void turnFront() {
    int GY = GyroGet();
-   speed = -50;
+   speed = -150;
    int diff = 90;
    while((GY > diff) || ((360 - diff) < GY)) {
       if(GY < 180) {
@@ -174,22 +199,42 @@ void setup() {
       }
    }
    MotorFree();
+
 }
 
 void loop() {
-   // MotorFree();
 
-   IRUpdate();
-   turnFront();
-   Serial.println(BallAngle);
-   speed = 130;
-   if((BallAngle > 10) && (BallAngle <= 180)) {
-      Motor(BallAngle + 40);
+   speed = 100;
+
+   for(int i = 0; i < 360; i++) {
+      Motor(i);
+      delay(10);
    }
-   else if ((BallAngle > 180) && (BallAngle < 350)) {
-      Motor(BallAngle - 40);
-   }
-   else {
-      Motor(0);
-   }
+
+   // speed = 170;
+   // IRUpdate();
+   // bool isBallFront = (nearAngle == 4)? true: false;
+
+
+
+   // if(BallStr > 400) {
+   //    if(isBallFront) {
+   //       Motor(0);
+   //    }
+   //    else {
+   //       if((BallAngle > 10) && (BallAngle <= 180)) {
+   //          Motor(BallAngle + 50);
+   //       }
+   //       else if ((BallAngle > 180) && (BallAngle < 350)) {
+   //          Motor(BallAngle - 50);
+   //       }
+   //       else {
+   //          Motor(0);
+   //       }
+   //    }
+   // }
+   // else {
+   //    Motor(BallAngle);
+   // }
+
 }
