@@ -14,32 +14,13 @@ VectorFloat gravity;
 float ypr[3];
 int Gyro_X = -112, Gyro_Y = 63, Gyro_Z = -13, Accel_Z = 1579;
 
-int LinePins[4][2] = {
-   {2,3},{0,0},{0,0},{0,0}
-};
-
-
 char BallDebug[64];
+int nearAngle = 0, BallZeroQTY = 0, speed = 0;
+int BallAngle = 0, BallStr = 0, BallAngle_UC = 0;
 
-int nearAngle = 0;
-
-int BallZeroQTY = 0;
-
-int speed = 0;
-
-int BallAngle = 0, BallStr = 0;
-int BallAngle_UC = 0;
-
-
-
-int BallPins[16] = {
-   23,32,11,38,20,31,12,39,21,30,36,28,22,33,37,29
-};
-
-int MotorPins[4][2] = {
-   {4,5}, {2,3}, {6,7}, {8,9}
-};
-
+int LinePins[4][2] = {{2,3},{0,0},{0,0},{0,0}};
+int BallPins[16] = {23,32,11,38,20,31,12,39,21,30,36,28,22,33,37,29};
+int MotorPins[4][2] = {{4,5},{2,3},{6,7},{8,9}};
 int tmpBallStr[16] = {0};
 
 void IRUpdate() {
@@ -53,8 +34,6 @@ void IRUpdate() {
       VectorY += sin(sensorDeg) * strength;
       tmpBallStr[i] = strength;
       if(strength == 0) __BallZeroQTY++;
-      // Serial.print(strength);
-      // Serial.print("  ");
    }
    BallZeroQTY = __BallZeroQTY;
    VectorX *= -1, VectorY *= -1;
@@ -62,14 +41,10 @@ void IRUpdate() {
    tmpBallAngle += 180;
    if(tmpBallAngle < 0) tmpBallAngle += 360;
    BallAngle = (int)tmpBallAngle + fixconst;
-
    nearAngle = (int)(tmpBallAngle / 22.5);
    nearAngle = 16 - nearAngle + 4;
    if(nearAngle > 16) nearAngle -= 16;
-
    BallStr = tmpBallStr[nearAngle - 1];
-   // BallStr = pulseIn(BallPins[nearAngle - 1],LOW,833);
-
    int order = (360 - BallAngle);
    BallAngle_UC = (order > 360)? order -= 360: order;
    sprintf(BallDebug,"角度:%d 距離:%d",BallAngle,BallStr);
@@ -116,12 +91,8 @@ int GyroGet(void) {
       mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
       Gyro_Now = degrees(ypr[0]) + 180;
       Gyro = Gyro_Now + Gyro_Offset - 180;
-      if (Gyro < 0) {
-         Gyro += 360;
-      }
-      if (Gyro > 359) {
-         Gyro -= 360;
-      }
+      if (Gyro < 0) Gyro += 360;
+      if (Gyro > 359) Gyro -= 360;
    }
    return Gyro;
 }
@@ -150,43 +121,59 @@ void roll(int dir) {
    }
 }
 
+void turn(int dir) {
+   int init_angle = GyroGet();
+
+}
+
 void turnFront() {
    int GY = GyroGet();
-   speed = -150;
+   speed = 150;
    int diff = 90;
    while((GY > diff) || ((360 - diff) < GY)) {
-      if(GY < 180) {
-         Motor(1,speed); // 左前
-         Motor(2,speed); // 右前
-         Motor(3,speed); // 左後
-         Motor(4,speed); // 右後
-      }
-      else {
-         Motor(1,-speed); // 左前
-         Motor(2,-speed); // 右前
-         Motor(3,-speed); // 左後
-         Motor(4,-speed); // 右後
+      // if(GY < 180) {
+      //    Motor(1,speed);
+      //    Motor(2,speed);
+      //    Motor(3,speed);
+      //    Motor(4,speed);
+      // }
+      // else {
+      //    Motor(1,-speed);
+      //    Motor(2,-speed);
+      //    Motor(3,-speed);
+      //    Motor(4,-speed);
+      // }
+      if(GY < 180) speed *= -1;
+      for(int i = 0; i < 4; i++) {
+         Motor(i+1,speed);
       }
       if((GyroGet() < diff) || (GyroGet() > (360 - diff))) break;
    }
 }
 
 void Motor(int angle) {
-   int gy = GyroGet(), addP = 0;
    int MotorAngle[4] = {40, 140, 225, 315};
-   float MPwrVector[4] = {0};
-   angle = 360 - angle + 90;
-   if((gy > 5) && (gy <= 180)) addP = -5;
-   else if ((gy > 180) && (gy < 355)) addP = 5;
+   float MPwrVector[4] = {0}, MPwrMag[4] = {0};
+   angle = 450 - angle;
    for(int i = 0; i < 4; i++) {
       float __Angle = (MotorAngle[i] + angle) * (PI / 180);
       MPwrVector[i] = cos(__Angle);
       if((i == 1) || (i == 3)) MPwrVector[i] *= -1;
-      Motor(i+1, MPwrVector[i] * speed + addP);
-      // Serial.print(MPwrVector[i]);
-      // Serial.print("  ");
+      MPwrMag[i] = abs(MPwrVector[i]);
+      // Motor(i+1, MPwrVector[i] * speed + addP);
    }
-   // Serial.println("");
+   float MPwrMax = 0;
+   for(int i = 0; i < 4; i++) {
+      if(MPwrMag[i] > MPwrMax) MPwrMax = MPwrMag[i];
+   }
+   if(MPwrMax < 1) {
+      for(int i = 0; i < 4; i++) {
+         MPwrVector[i] *= (1 / MPwrMax);
+      }
+   }
+   for(int i = 0; i < 4; i++) {
+      Motor(i+1, speed * MPwrVector[i]);
+   }
 }
 
 void setup() {
@@ -211,8 +198,6 @@ void loop() {
    IRUpdate();
    bool isBallFront = (nearAngle == 4)? true: false;
 
-
-
    if(BallStr > 400) {
       if(isBallFront) {
          Motor(0);
@@ -232,5 +217,4 @@ void loop() {
    else {
       Motor(BallAngle);
    }
-
 }
