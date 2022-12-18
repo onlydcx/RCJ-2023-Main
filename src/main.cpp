@@ -14,6 +14,10 @@ VectorFloat gravity;
 float ypr[3];
 int Gyro_X = -112, Gyro_Y = 63, Gyro_Z = -13, Accel_Z = 1579;
 
+int LinePins[4][2] = {
+   {2,3},{0,0},{0,0},{0,0}
+};
+
 
 char BallDebug[64];
 
@@ -199,42 +203,34 @@ void setup() {
       }
    }
    MotorFree();
-
 }
 
 void loop() {
 
-   speed = 100;
+   speed = 220;
+   IRUpdate();
+   bool isBallFront = (nearAngle == 4)? true: false;
 
-   for(int i = 0; i < 360; i++) {
-      Motor(i);
-      delay(10);
+
+
+   if(BallStr > 400) {
+      if(isBallFront) {
+         Motor(0);
+      }
+      else {
+         if((BallAngle > 10) && (BallAngle <= 180)) {
+            Motor(BallAngle + 50);
+         }
+         else if ((BallAngle > 180) && (BallAngle < 350)) {
+            Motor(BallAngle - 50);
+         }
+         else {
+            Motor(0);
+         }
+      }
    }
-
-   // speed = 170;
-   // IRUpdate();
-   // bool isBallFront = (nearAngle == 4)? true: false;
-
-
-
-   // if(BallStr > 400) {
-   //    if(isBallFront) {
-   //       Motor(0);
-   //    }
-   //    else {
-   //       if((BallAngle > 10) && (BallAngle <= 180)) {
-   //          Motor(BallAngle + 50);
-   //       }
-   //       else if ((BallAngle > 180) && (BallAngle < 350)) {
-   //          Motor(BallAngle - 50);
-   //       }
-   //       else {
-   //          Motor(0);
-   //       }
-   //    }
-   // }
-   // else {
-   //    Motor(BallAngle);
-   // }
+   else {
+      Motor(BallAngle);
+   }
 
 }
