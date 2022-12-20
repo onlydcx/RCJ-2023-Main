@@ -234,43 +234,15 @@
 #include "Arduino.h"
 #include <Wire.h>
 
-#define SLAVE_ADDRESS 0x01
-#define SLAVE_REGISTER_1 0x00
-#define SLAVE_REGISTER_2 0x01
-
-int val;
-
 void setup() {
-  Wire.begin();
-  Serial.begin(9600);
+Wire.begin();
+Serial.begin(9600);
 }
 
 void loop() {
-
-  Wire.beginTransmission(SLAVE_ADDRESS);
-  Wire.write(SLAVE_REGISTER_1);
-  Wire.endTransmission(false);
-  Wire.requestFrom(SLAVE_ADDRESS, 1);
-  Serial.print("SLAVE_REGISTER_1 ");
-  while (Wire.available() > 0){
-     val = Wire.read();
-     Serial.print(val);
-     Serial.print(" ");         
+  Wire.requestFrom(8, 1);
+  while (Wire.available()) {
+    byte data = Wire.read();
+    Serial.println(data);
   }
-  Serial.println(" "); 
-
-
-  Wire.beginTransmission(SLAVE_ADDRESS);
-  Wire.write(SLAVE_REGISTER_2);
-  Wire.endTransmission(false);
-  Wire.requestFrom(SLAVE_ADDRESS, 1);
-  Serial.print("SLAVE_REGISTER_2 ");
-  while (Wire.available() > 0){
-     val = Wire.read();
-     Serial.print(val);
-     Serial.print(" ");         
-  }
-  Serial.println(" "); 
-
-delay(1000);
 }
