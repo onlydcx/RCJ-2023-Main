@@ -7,7 +7,7 @@ MPU6050 mpu;
 static uint8_t mpuIntStatus;
 static bool dmpReady = false;
 static uint16_t packetSize;
-int16_t Gyro_Now = 0, Gyro = 0, Gyro_Offset = 0;
+int16_t Gyro_Now, Gyro, Gyro_Offset = 0;
 uint16_t fifoCount;
 uint8_t fifoBuffer[64];
 Quaternion q;
@@ -16,8 +16,7 @@ float ypr[3];
 int Gyro_X = -112, Gyro_Y = 63, Gyro_Z = -13, Accel_Z = 1579;
 
 char BallDebug[64];
-int nearAngle = 0, BallZeroQTY = 0, speed = 0;
-int BallAngle = 0, BallStr = 0, BallAngle_UC = 0;
+int nearAngle, BallZeroQTY, speed, BallAngle, BallStr, BallAngle_UC = 0;
 bool isNoBall = false;
 
 int LinePins[4][2] = {{2,3},{0,0},{0,0},{0,0}};
@@ -39,32 +38,65 @@ void IRUpdate() {
    }
    BallZeroQTY = __BallZeroQTY;
    VectorX *= -1, VectorY *= -1;
-   float tmpBallAngle = atan2(VectorX,VectorY) * (180 / PI);
-   tmpBallAngle += 180;
+   float tmpBallAngle = (atan2(VectorX,VectorY) * (180 / PI)) + 180;
    if(tmpBallAngle < 0) tmpBallAngle += 360;
    BallAngle = (int)tmpBallAngle + fixconst;
 
    // 2022.12.21 追記分 (距離の正確性)
    int maxBallStr = 0, maxSensorID = 0;
+   int __BallStrID[4] = {0};
+   bool isSort = false;
    for(int i = 0; i < 16; i++) {
       if(tmpBallStr[i] > maxBallStr) {
          maxBallStr = tmpBallStr[i];
          maxSensorID = i;
       }
    }
-   int __BallStrIDBy4[4] = {0};
-   if(maxSensorID > 1) {
-      if(tmpBallStr[maxSensorID-1] > tmpBallStr[maxSensorID+1]) {
-         for(int i = 0; i < 4; i++) {
-            if(i < 2) __BallStrIDBy4[i] = maxSensorID - i;
-            else if (i == 2) __BallStrIDBy4[i] = maxSensorID+1;
-            else __BallStrIDBy4[i] = maxSensorID - 2;
-         }
-      }
-   }
+
+   BallStr = tmpBallStr[maxSensorID];
+
+   // if((maxSensorID > 1) && (maxSensorID < 14)) {
+   //    isSort = (tmpBallStr[maxSensorID-1] > tmpBallStr[maxSensorID+1])? false: true;
+   //    for(int i = 0; i < 4; i++) {
+   //       int addSign = (isSort)? 1: -1;
+   //       if(i < 2) __BallStrID[i] = maxSensorID - addSign*i;
+   //       else if (i == 2) __BallStrID[i] = maxSensorID + addSign*1;
+   //       else __BallStrID[i] = maxSensorID - addSign*2;
+   //    }
+   // }
+   // else {
+   //    if(maxSensorID == 0) {
+   //       isSort = (tmpBallStr[1] > tmpBallStr[15])? false: true;
+   //       if(isSort) __BallStrID[0] = 0,__BallStrID[1] = 15,__BallStrID[2] = 1,__BallStrID[3] = 14;
+   //       else __BallStrID[0] = 0,__BallStrID[1] = 1,__BallStrID[2] = 15,__BallStrID[3] = 2;
+   //    }
+   //    else if (maxSensorID == 1) {
+   //       isSort = (tmpBallStr[2] > tmpBallStr[0])? false: true;
+   //       if(isSort) __BallStrID[0] = 1,__BallStrID[1] = 0,__BallStrID[2] = 2,__BallStrID[3] = 15;
+   //       else __BallStrID[0] = 1,__BallStrID[1] = 2,__BallStrID[2] = 0,__BallStrID[3] = 3;
+   //    }
+   //    else if (maxSensorID == 14) {
+   //       isSort = (tmpBallStr[13] > tmpBallStr[15])? false: true;
+   //       if(isSort) __BallStrID[0] = 14,__BallStrID[1] = 15,__BallStrID[2] = 13,__BallStrID[3] = 0;
+   //       else __BallStrID[0] = 14,__BallStrID[1] = 13,__BallStrID[2] = 15,__BallStrID[3] = 12;
+   //    }
+   //    else {
+   //       isSort = (tmpBallStr[14] > tmpBallStr[0])? false: true;
+   //       if(isSort) __BallStrID[0] = 15,__BallStrID[1] = 0,__BallStrID[2] = 14,__BallStrID[3] = 1;
+   //       else __BallStrID[0] = 15,__BallStrID[1] = 14,__BallStrID[2] = 0,__BallStrID[3] = 13;
+   //    }
+   // }
+   // float StrX,StrY = 0;
+   // for(int i = 0; i < 4; i++) {
+   //    float __angle = 22.5 * __BallStrID[i] * (PI / 180);
+   //    StrX += cos(__angle) * tmpBallStr[__BallStrID[i]];
+   //    StrY += sin(__angle) * tmpBallStr[__BallStrID[i]];
+   // }
+   // float dir = sqrt(pow(StrX,2) + pow(StrY,2));
+   // Serial.println((int)dir/4);
+
    ((BallAngle == 0) && (maxBallStr == 0))? isNoBall = true: isNoBall = false;
    sprintf(BallDebug,"角度:%d 距離:%d",BallAngle,BallStr);
-   Serial.println(isNoBall);
 }
 
 void Motor(int num, int speed) {
@@ -217,6 +249,7 @@ void setup() {
    MotorFree();
    while(1) {
       IRUpdate();
+      // Serial.println(BallStr);
    }
 }
 
