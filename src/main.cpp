@@ -2,18 +2,7 @@
 #include <Wire.h>
 #include <MPU6050_6Axis_MotionApps20.h>
 #include <Wire.h>
-
-MPU6050 mpu;
-static uint8_t mpuIntStatus;
-static bool dmpReady = false;
-static uint16_t packetSize;
-int16_t Gyro_Now, Gyro, Gyro_Offset = 0;
-uint16_t fifoCount;
-uint8_t fifoBuffer[64];
-Quaternion q;
-VectorFloat gravity;
-float ypr[3];
-int Gyro_X = -112, Gyro_Y = 63, Gyro_Z = -13, Accel_Z = 1579;
+#include "IMU.h"
 
 char BallDebug[64];
 int nearAngle, BallZeroQTY, speed, BallAngle, BallStr, BallAngle_UC = 0;
@@ -25,9 +14,8 @@ int MotorPins[4][2] = {{4,5},{2,3},{6,7},{8,9}};
 int tmpBallStr[16] = {0};
 
 void IRUpdate() {
-   int fixconst = 0;
    int __BallZeroQTY = 0;
-   double VectorX = 0, VectorY = 0;
+   double VectorX, VectorY = 0;
    for(int i = 0; i < 16; i++) {
       int strength = pulseIn(BallPins[i],LOW,833);
       float sensorDeg = 22.5 * (PI / 180) * i;
@@ -40,79 +28,35 @@ void IRUpdate() {
    VectorX *= -1, VectorY *= -1;
    float tmpBallAngle = (atan2(VectorX,VectorY) * (180 / PI)) + 180;
    if(tmpBallAngle < 0) tmpBallAngle += 360;
-   BallAngle = (int)tmpBallAngle + fixconst;
-
-   // 2022.12.21 追記分 (距離の正確性)
+   BallAngle = (int)tmpBallAngle;
    int maxBallStr = 0, maxSensorID = 0;
-   int __BallStrID[4] = {0};
-   bool isSort = false;
    for(int i = 0; i < 16; i++) {
       if(tmpBallStr[i] > maxBallStr) {
          maxBallStr = tmpBallStr[i];
          maxSensorID = i;
       }
    }
-
    BallStr = tmpBallStr[maxSensorID];
-
-   // if((maxSensorID > 1) && (maxSensorID < 14)) {
-   //    isSort = (tmpBallStr[maxSensorID-1] > tmpBallStr[maxSensorID+1])? false: true;
-   //    for(int i = 0; i < 4; i++) {
-   //       int addSign = (isSort)? 1: -1;
-   //       if(i < 2) __BallStrID[i] = maxSensorID - addSign*i;
-   //       else if (i == 2) __BallStrID[i] = maxSensorID + addSign*1;
-   //       else __BallStrID[i] = maxSensorID - addSign*2;
-   //    }
-   // }
-   // else {
-   //    if(maxSensorID == 0) {
-   //       isSort = (tmpBallStr[1] > tmpBallStr[15])? false: true;
-   //       if(isSort) __BallStrID[0] = 0,__BallStrID[1] = 15,__BallStrID[2] = 1,__BallStrID[3] = 14;
-   //       else __BallStrID[0] = 0,__BallStrID[1] = 1,__BallStrID[2] = 15,__BallStrID[3] = 2;
-   //    }
-   //    else if (maxSensorID == 1) {
-   //       isSort = (tmpBallStr[2] > tmpBallStr[0])? false: true;
-   //       if(isSort) __BallStrID[0] = 1,__BallStrID[1] = 0,__BallStrID[2] = 2,__BallStrID[3] = 15;
-   //       else __BallStrID[0] = 1,__BallStrID[1] = 2,__BallStrID[2] = 0,__BallStrID[3] = 3;
-   //    }
-   //    else if (maxSensorID == 14) {
-   //       isSort = (tmpBallStr[13] > tmpBallStr[15])? false: true;
-   //       if(isSort) __BallStrID[0] = 14,__BallStrID[1] = 15,__BallStrID[2] = 13,__BallStrID[3] = 0;
-   //       else __BallStrID[0] = 14,__BallStrID[1] = 13,__BallStrID[2] = 15,__BallStrID[3] = 12;
-   //    }
-   //    else {
-   //       isSort = (tmpBallStr[14] > tmpBallStr[0])? false: true;
-   //       if(isSort) __BallStrID[0] = 15,__BallStrID[1] = 0,__BallStrID[2] = 14,__BallStrID[3] = 1;
-   //       else __BallStrID[0] = 15,__BallStrID[1] = 14,__BallStrID[2] = 0,__BallStrID[3] = 13;
-   //    }
-   // }
-   // float StrX,StrY = 0;
-   // for(int i = 0; i < 4; i++) {
-   //    float __angle = 22.5 * __BallStrID[i] * (PI / 180);
-   //    StrX += cos(__angle) * tmpBallStr[__BallStrID[i]];
-   //    StrY += sin(__angle) * tmpBallStr[__BallStrID[i]];
-   // }
-   // float dir = sqrt(pow(StrX,2) + pow(StrY,2));
-   // Serial.println((int)dir/4);
-
-   ((BallAngle == 0) && (maxBallStr == 0))? isNoBall = true: isNoBall = false;
+   isNoBall = ((BallAngle == 0) && (maxBallStr == 0))? true: false;
    sprintf(BallDebug,"角度:%d 距離:%d",BallAngle,BallStr);
 }
 
-void Motor(int num, int speed) {
+void __motor(int num, int speed) {
    if(speed < 0) {
       analogWrite(MotorPins[num-1][0],abs(speed));
       analogWrite(MotorPins[num-1][1],0);
    }
    else if (speed > 0) {
       analogWrite(MotorPins[num-1][0],0);
-      analogWrite(MotorPins[num-1][1],speed);
+      analogWrite(MotorPins[num-1][1],abs(speed)); // 2022.12.21 修正 abs付け加え
    }
    else {
       analogWrite(MotorPins[num-1][0],255);
       analogWrite(MotorPins[num-1][1],255);
    }
 }
+
+
 
 void MotorFree() {
    for(int i = 0; i < 4; i++) {
@@ -121,82 +65,53 @@ void MotorFree() {
    }
 }
 
-int GyroGet(void) {
-   mpuIntStatus = false;
-   mpuIntStatus = mpu.getIntStatus();
-   fifoCount = mpu.getFIFOCount();
-
-   if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
-      mpu.resetFIFO();
-   }
-   else if (mpuIntStatus & 0x02) {
-      while (fifoCount < packetSize) {
-         fifoCount = mpu.getFIFOCount();
-      }
-      mpu.getFIFOBytes(fifoBuffer, packetSize);
-      fifoCount -= packetSize;
-      mpu.dmpGetQuaternion(&q, fifoBuffer);
-      mpu.dmpGetGravity(&gravity, &q);
-      mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-      Gyro_Now = degrees(ypr[0]) + 180;
-      Gyro = Gyro_Now + Gyro_Offset - 180;
-      if (Gyro < 0) Gyro += 360;
-      if (Gyro > 359) Gyro -= 360;
-   }
-   return Gyro;
-}
-
-void Gryo_init() {
-   mpu.initialize();
-   if (mpu.testConnection() != true) {
-      Serial.println("MPU disconection");
-   }
-   if (mpu.dmpInitialize() != 0) {
-      Serial.println("MPU break");
-   }
-   mpu.setXGyroOffset(Gyro_X);
-   mpu.setYGyroOffset(Gyro_Y);
-   mpu.setZGyroOffset(Gyro_Z);
-   mpu.setZAccelOffset(Accel_Z);
-   mpu.setDMPEnabled(true);
-   mpuIntStatus = mpu.getIntStatus();
-   dmpReady = true;
-   packetSize = mpu.dmpGetFIFOPacketSize();
-}
-
-void roll(int dir) {
+void MotorStop() {
    for(int i = 0; i < 4; i++) {
-      Motor(i+1,-dir);
+      __motor(i+1,0);
    }
-}
-
-void turn(int dir) {
-   int init_angle = GyroGet();
-
 }
 
 void turnFront() {
    int GY = GyroGet();
-   speed = 150;
-   int diff = 90;
-   while((GY > diff) || ((360 - diff) < GY)) {
-      // if(GY < 180) {
-      //    Motor(1,speed);
-      //    Motor(2,speed);
-      //    Motor(3,speed);
-      //    Motor(4,speed);
-      // }
-      // else {
-      //    Motor(1,-speed);
-      //    Motor(2,-speed);
-      //    Motor(3,-speed);
-      //    Motor(4,-speed);
-      // }
-      if(GY < 180) speed *= -1;
+   int speed = 80;
+   int diff = 15;
+   while((GY > diff) || ((360 - diff) > GY)) {
+      if(180 > GY) speed = -abs(speed);
+      else speed = abs(speed);
       for(int i = 0; i < 4; i++) {
-         Motor(i+1,speed);
+         __motor(i+1,speed);
       }
-      if((GyroGet() < diff) || (GyroGet() > (360 - diff))) break;
+      GY = GyroGet();
+      if((GY < diff) || ((360 - diff) < GY)) {
+         MotorStop();
+         delay(100);
+         break;
+      }
+   }
+}
+
+void turn(int dir, bool absolute) {
+   int diff = 5, power = 80;
+   if(absolute) {
+      if(dir <= 180) {
+         while((GyroGet() < (dir - diff))) {
+            for(int i = 0; i < 4; i++) {
+               __motor(i+1,power);
+            }
+            if(GyroGet() > (dir - diff)) break;
+         }
+      }
+      else if (dir > 180) {
+         while(GyroGet() >= (dir + diff)) {
+            for(int i = 0; i < 4; i++) {
+               __motor(i+1,-power);
+            }
+            if(GyroGet() <= (dir + diff)) break;
+         }
+      }
+      for(int i = 0; i < 4; i++) {
+         __motor(i+1,0);
+      }
    }
 }
 
@@ -220,9 +135,16 @@ void Motor(int angle) {
          MPwrVector[i] *= (1 / MPwrMax);
       }
    }
+   int diff = 3;
+   int gy = GyroGet(), addPower = 0;
+   if((gy >= diff) && (gy < 180)) addPower = -(speed / 20);
+   else if ((gy < (360-diff)) && (gy >= 180)) addPower = (speed / 20);
    for(int i = 0; i < 4; i++) {
-      Motor(i+1, speed * MPwrVector[i]);
+      Serial.print(MPwrVector[i]);
+      Serial.print("  ");
+      __motor(i+1, speed * MPwrVector[i] + addPower);
    }
+   Serial.println("");
 }
 
 void send32U4(int data) {
@@ -236,7 +158,7 @@ void setup() {
    Serial.begin(9600);
    Wire.begin();
    // Wire.setClock(400000);
-   Gryo_init();
+   Gyro_init();
    for(int i = 0; i < 16; i++) {
       pinMode(BallPins[i],INPUT);
    }
@@ -248,8 +170,7 @@ void setup() {
    }
    MotorFree();
    while(1) {
-      IRUpdate();
-      // Serial.println(BallStr);
+      Serial.println(GyroGet());
    }
 }
 
@@ -259,27 +180,22 @@ void loop() {
   //   byte data = Wire.read();
   //   Serial.println(data);
   // }
-   speed = 220;
+   speed = 100;
    IRUpdate();
+   turnFront();
    bool isBallFront = (nearAngle == 4)? true: false;
 
-   if(BallStr > 400) {
-      if(isBallFront) {
-         Motor(0);
+   if(!isNoBall) {
+      if(BallStr > 450) {
+         // 回り込み
+         if(isBallFront) Motor(0);
+         else {
+            float add = 0.2;
+            Motor(BallAngle + BallAngle*add);
+         }
       }
       else {
-         if((BallAngle > 10) && (BallAngle <= 180)) {
-            Motor(BallAngle + 50);
-         }
-         else if ((BallAngle > 180) && (BallAngle < 350)) {
-            Motor(BallAngle - 50);
-         }
-         else {
-            Motor(0);
-         }
+         Motor(BallAngle);
       }
-   }
-   else {
-      Motor(BallAngle);
    }
 }
