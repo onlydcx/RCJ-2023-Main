@@ -1,12 +1,12 @@
-#include <Arduino.h>
+#include "Arduino.h"
 #include <Wire.h>
-#include "IMU.h"
 #include "Motor.h"
+#include "IMU.h"
 
-Motor Motor();
+Motor motor;
 
 char BallDebug[64];
-int nearAngle, BallZeroQTY, speed, BallAngle, BallStr, BallAngle_UC = 0;
+int nearAngle, BallZeroQTY, BallAngle, BallStr, BallAngle_UC = 0;
 bool isNoBall = false;
 
 int LinePins[4][2] = {{2,3},{0,0},{0,0},{0,0}};
@@ -15,7 +15,7 @@ int tmpBallStr[16] = {0};
 
 void IRUpdate() {
    int __BallZeroQTY = 0;
-   double VectorX, VectorY = 0;
+   double VectorX = 0, VectorY = 0;
    for(int i = 0; i < 16; i++) {
       int strength = pulseIn(BallPins[i],LOW,833);
       float sensorDeg = 22.5 * (PI / 180) * i;
@@ -56,7 +56,8 @@ void setup() {
       pinMode(BallPins[i],INPUT);
    }
    while(1) {
-      Serial.println(GyroGet());
+      // Motor.run(0);
+      motor.run(10);
    }
 }
 
