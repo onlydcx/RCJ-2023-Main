@@ -29,8 +29,6 @@ void Motor::roll(int num, int speed) {
    }
 }
 
-
-
 void Motor::free() {
    for(int i = 0; i < 4; i++) {
       analogWrite(MotorPins[i-1][0],0);

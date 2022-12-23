@@ -57,7 +57,7 @@ void setup() {
    }
    while(1) {
       // Motor.run(0);
-      motor.run(10);
+      motor.run(0);
    }
 }
 
