@@ -229,17 +229,26 @@ void turnFront() {
    }
 }
 void Motor(int angle) {
+   // 40
    int MotorAngle[4] = {40, 140, 225, 315};
    float MPwrVector[4] = {0}, MPwrMag[4] = {0};
    angle = 450 - angle;
+   if(angle > 360) angle -= 360;
    // 懸念点：：angle>360 の処理は？？ 2022.12.23
+   // 
    for(int i = 0; i < 4; i++) {
-      float __Angle = (MotorAngle[i] + angle) * (PI / 180);
-      MPwrVector[i] = cos(__Angle);
-      if((i == 1) || (i == 3)) MPwrVector[i] *= -1;
+      MPwrVector[i] = -sin((angle - MotorAngle[i]) * (PI / 180));
       MPwrMag[i] = abs(MPwrVector[i]);
+      Serial.print(MPwrVector[i]);
+      Serial.print("  ");
+
+      // float __Angle = (MotorAngle[i] + angle) * (PI / 180);
+      // MPwrVector[i] = cos(__Angle);
+      // if((i == 1) || (i == 3)) MPwrVector[i] *= -1;
+      // MPwrMag[i] = abs(MPwrVector[i]);
       // Motor(i+1, MPwrVector[i] * speed + addP);
    }
+   Serial.println("");
    float MPwrMax = 0;
    for(int i = 0; i < 4; i++) {
       if(MPwrMag[i] > MPwrMax) MPwrMax = MPwrMag[i];
@@ -249,16 +258,16 @@ void Motor(int angle) {
          MPwrVector[i] *= (1 / MPwrMax);
       }
    }
-   int diff = 3;
+   int diff = 5;
    int gy = GyroGet(), addPower = 0;
-   if((gy >= diff) && (gy < 180)) addPower = -(speed / 20);
-   else if ((gy < (360-diff)) && (gy >= 180)) addPower = (speed / 20);
+   if((gy >= diff) && (gy < 180)) addPower = -(speed / 6);
+   else if ((gy < (360-diff)) && (gy >= 180)) addPower = (speed / 106);
    for(int i = 0; i < 4; i++) {
-      Serial.print(MPwrVector[i]);
-      Serial.print("  ");
+      // Serial.print(MPwrVector[i]);
+      // Serial.print("  ");
       Motor(i+1, speed * MPwrVector[i] + addPower);
    }
-   Serial.println("");
+   // Serial.println("");
 }
 void send32U4(int data) {
    data /= 4;
@@ -282,8 +291,8 @@ void setup() {
    }
     MotorFree();
    //  while(1) {
-   //    IRUpdate();
-   //    Serial.println(BallStr > 400);
+   //    speed = 0;
+   //    Motor(310);
    //  }
  }
 
@@ -291,26 +300,46 @@ void loop() {
    speed = 220;
    IRUpdate();
    bool isBallFront = (nearAngle == 4)? true: false;
+   int toMove = 0;
    if(BallStr > 400) {
       if(isBallFront) {
-         Motor(0);
+         while(isBallFront) {
+            // Motor(0);
+            toMove = 0;
+            if(!isBallFront) break;
+         }
       }
+
       else {
          int dir = BallAngle;
-         if(dir > 180); dir = 360 - dir;
+         if(dir > 180) dir = 360 - dir;
          if(dir > 50) dir = 50;
-         if((BallAngle > 10) && (BallAngle <= 180)) {
-            Motor(BallAngle + dir);
+         if((BallAngle > 10) && (BallAngle <= 135)) {
+            // Motor(BallAngle + dir);
+            toMove = BallAngle + dir;
          }
-         else if ((BallAngle > 180) && (BallAngle < 350)) {
-            Motor(BallAngle - dir);
+         else if ((BallAngle > 225) && (BallAngle < 350)) {
+            // Motor(BallAngle - dir);
+            toMove = BallAngle - dir;
+         }
+         else if (BallAngle > 135 && BallAngle < 180) {
+            toMove = 225;
+         }
+         else if (BallAngle >= 180 && BallAngle <= 225) {
+            toMove = 135;
          }
          else {
-            Motor(0);
+            // Motor(0);
+            toMove = 0;
          }
       }
    }
    else {
-      Motor(BallAngle);
+      toMove = BallAngle;
+      // Motor(BallAngle);
    }
+   Motor(toMove);
+   char deb[64];
+   sprintf(deb,"ボール：%d  行く方向：%d",BallAngle,toMove);
+   Serial.println(deb);
 }
