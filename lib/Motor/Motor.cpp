@@ -3,7 +3,7 @@
 #include "IMU.h"
 
 int MotorPins[4][2] = {{4,5},{2,3},{6,7},{8,9}};
-int speed = 200;
+extern int speed = 100;
 
 Motor::Motor() {
    for(int i = 0; i < 4; i++) {
