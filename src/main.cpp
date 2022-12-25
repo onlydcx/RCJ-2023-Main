@@ -20,7 +20,7 @@ void setup() {
 void loop() {
    IRUpdate();
    Serial.println(BallAngle);
-   // speed = 100;
+   speed = 100;
 
    // IRUpdate();
    // motor.turnFront();

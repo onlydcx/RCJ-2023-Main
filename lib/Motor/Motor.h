@@ -1,6 +1,8 @@
 #ifndef __MOTOR_H_
 #define __MOTOR_H_
 
+extern int speed;
+
 class Motor {
    public:
       Motor();
