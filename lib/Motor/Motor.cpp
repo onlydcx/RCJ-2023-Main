@@ -90,7 +90,7 @@ void Motor::run(int angle) {
    int MotorAngle[4] = {40, 140, 225, 315};
    float MPwrVector[4] = {0}, MPwrMag[4] = {0};
    angle = 450 - angle;
-   // 懸念点：：angle>360 の処理は？？ 2022.12.23
+   if(angle > 360) angle -= 360;
    for(int i = 0; i < 4; i++) {
       MPwrVector[i] = -sin((angle - MotorAngle[i]) * (PI / 180));
       MPwrMag[i] = abs(MPwrVector[i]);
