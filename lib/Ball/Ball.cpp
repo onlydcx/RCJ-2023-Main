@@ -4,7 +4,7 @@
 int BallPins[16] = {23,32,11,38,20,31,12,39,21,30,36,28,22,33,37,29};
 int tmpBallStr[16] = {0};
 char BallDebug[64];
-int nearAngle, BallZeroQTY, BallAngle, BallStr, BallAngle_UC = 0;
+int nearAngle, BallZeroQTY, BallAngle,BallStr, BallAngle_UC = 0;
 bool isNoBall = false;
 bool isBallFront = (nearAngle == 4)? true: false;
 
@@ -40,4 +40,5 @@ void IRUpdate() {
    BallStr = tmpBallStr[maxSensorID];
    isNoBall = ((BallAngle == 0) && (maxBallStr == 0))? true: false;
    sprintf(BallDebug,"角度:%d 距離:%d",BallAngle,BallStr);
+   // Serial.println(BallDebug);
 }

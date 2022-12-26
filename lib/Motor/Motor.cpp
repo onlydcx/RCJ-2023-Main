@@ -3,7 +3,7 @@
 #include "IMU.h"
 
 int MotorPins[4][2] = {{4,5},{2,3},{6,7},{8,9}};
-int speed = 100;
+int speed = 150;
 
 Motor::Motor() {
    for(int i = 0; i < 4; i++) {
@@ -106,12 +106,13 @@ void Motor::run(int angle) {
    }
    int diff = 3;
    int gy = GyroGet(), addPower = 0;
-   if((gy >= diff) && (gy < 180)) addPower = -(speed / 20);
-   else if ((gy < (360-diff)) && (gy >= 180)) addPower = (speed / 20);
+   // 30 good
+   if((gy >= diff) && (gy < 180)) addPower = -(speed / 40);
+   else if ((gy < (360-diff)) && (gy >= 180)) addPower = (speed / 40);
    for(int i = 0; i < 4; i++) {
-      Serial.print(MPwrVector[i]);
-      Serial.print("  ");
+      // Serial.print(MPwrVector[i]);
+      // Serial.print("  ");
       Motor::roll(i+1, speed * MPwrVector[i] + addPower);
    }
-   Serial.println("");
+   // Serial.println("");
 }
