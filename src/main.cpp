@@ -6,15 +6,16 @@
 
 Motor motor;
 
-int LinePins[4][2] = {{2,3},{0,0},{0,0},{0,0}};
-
 void setup() {
    Serial.begin(9600);
    Wire.begin();
    Gyro_init();
-   // for(int i = 0; i < 16; i++) {
-   //    pinMode(BallPins[i],INPUT);
-   // }
+   motor.free();
+   IR_init();
+   while(1) {
+      IRUpdate();
+      Serial.println(BallAngle);
+   }
 }
 
 void loop() {
@@ -22,21 +23,20 @@ void loop() {
    Serial.println(BallAngle);
    speed = 100;
 
-   // IRUpdate();
-   // motor.turnFront();
-   // bool isBallFront = (nearAngle == 4)? true: false;
+   IRUpdate();
+   motor.turnFront();
 
-   // if(!isNoBall) {
-   //    if(BallStr > 450) {
-   //       // 回り込み
-   //       if(isBallFront) motor.run(0);
-   //       else {
-   //          float add = 0.2;
-   //          motor.run(BallAngle + BallAngle*add);
-   //       }
-   //    }
-   //    else {
-   //       motor.run(BallAngle);
-   //    }
-   // }
+   if(!isNoBall) {
+      if(BallStr > 450) {
+         // 回り込み
+         if(isBallFront) motor.run(0);
+         else {
+            float add = 0.2;
+            motor.run(BallAngle + BallAngle*add);
+         }
+      }
+      else {
+         motor.run(BallAngle);
+      }
+   }
 }

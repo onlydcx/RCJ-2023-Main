@@ -6,6 +6,13 @@ int tmpBallStr[16] = {0};
 char BallDebug[64];
 int nearAngle, BallZeroQTY, BallAngle, BallStr, BallAngle_UC = 0;
 bool isNoBall = false;
+bool isBallFront = (nearAngle == 4)? true: false;
+
+void IR_init() {
+   for(int i = 0; i < 16; i++) {
+      pinMode(BallPins[i],INPUT);
+   }
+}
 
 void IRUpdate() {
    int __BallZeroQTY = 0;
