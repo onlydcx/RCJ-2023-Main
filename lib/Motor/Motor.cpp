@@ -113,6 +113,7 @@ void Motor::run(int angle) {
       // Serial.print(MPwrVector[i]);
       // Serial.print("  ");
       Motor::roll(i+1, speed * MPwrVector[i] + addPower);
+      // プラスとかマイナスとかじゃなくて掛け算にしてみては？？ 2022.12/29
    }
    // Serial.println("");
 }

@@ -32,18 +32,18 @@ void loop() {
    dir = dir*s*2;
 
          
-         if((BallAngle > 10) && (BallAngle <= 180)) {
-            // Motor(BallAngle + dir);
-            toMove = BallAngle + dir;
-         }
-         else if ((BallAngle > 180) && (BallAngle < 350)) {
-            // Motor(BallAngle - dir);
-            toMove = BallAngle - dir;
-         }
-         else {
-            // Motor(0);
-            toMove = 0;
-         }
+   if((BallAngle > 10) && (BallAngle <= 180)) {
+      // Motor(BallAngle + dir);
+      toMove = BallAngle + dir;
+   }
+   else if ((BallAngle > 180) && (BallAngle < 350)) {
+      // Motor(BallAngle - dir);
+      toMove = BallAngle - dir;
+   }
+   else {
+      // Motor(0);
+      toMove = 0;
+   }
       
 
 
