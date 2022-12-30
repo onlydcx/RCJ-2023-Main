@@ -7,7 +7,7 @@ extern int isOnAny;
 class Line {
    public:
       Line();
-      bool isOn(int dir);
+      bool isOnLine(int dir);
 };
 
 #endif

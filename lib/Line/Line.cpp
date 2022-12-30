@@ -11,6 +11,10 @@ Line::Line() {
    }
 }
 
-Line::isOn(int dir) {
-   
+Line::isOnLine(int dir) {
+   for(int i = 0; i < 2; i++) {
+      if(thresholds[dir][i] > analogRead(analogPins[dir][i])) {
+         
+      }
+   }
 }

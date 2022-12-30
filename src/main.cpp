@@ -35,6 +35,7 @@ void loop() {
             toMove = 0;
          }
          else {
+            // スピード落とせ！！
             int param = BallAngle;
             if(param > 180) param = 360 - param;
             if(param > 50) param = 50;
