@@ -22,28 +22,55 @@ void setup() {
 void loop() {
    speed = 150;
    IRUpdate();
-   int toMove = 0;
-   float s = (float)BallStr / 550;
-   if(s >= 1) s = 1.0;
-   s = pow(s,2);
-   int dir = BallAngle;
-   if(dir > 180) dir = 360 - dir;
-   if(dir > 50) dir = 45;
-   dir = dir*s*2;
-
-         
-   if((BallAngle > 10) && (BallAngle <= 180)) {
-      // Motor(BallAngle + dir);
-      toMove = BallAngle + dir;
-   }
-   else if ((BallAngle > 180) && (BallAngle < 350)) {
-      // Motor(BallAngle - dir);
-      toMove = BallAngle - dir;
+   if(isNoBall) {
+      motor.free();
    }
    else {
-      // Motor(0);
-      toMove = 0;
+      int toMove = 0;
+      if(BallStr < 450) {
+         toMove = BallAngle;
+      }
+      else {
+         if(BallAngle <= 15 || BallAngle >= 345) {
+            toMove = 0;
+         }
+         else {
+            int param = BallAngle;
+            if(param > 180) param = 360 - param;
+            if(param > 50) param = 50;
+            if(BallAngle > 15 && BallAngle < 180) {
+               toMove = BallAngle + param;
+            }
+            else {
+               toMove = BallAngle - param;
+            }
+         }
+      }
+      motor.run(toMove);
    }
+   // speed = 150;
+   // IRUpdate();
+   // int toMove = 0;
+   // float s = (float)BallStr / 550;
+   // if(s >= 1) s = 1.0;
+   // s = pow(s,2);
+   // int dir = BallAngle;
+   // if(dir > 180) dir = 360 - dir;
+   // if(dir > 50) dir = 45;
+   // dir = dir*s*2;
+         
+   // if((BallAngle > 10) && (BallAngle <= 180)) {
+   //    // Motor(BallAngle + dir);
+   //    toMove = BallAngle + dir;
+   // }
+   // else if ((BallAngle > 180) && (BallAngle < 350)) {
+   //    // Motor(BallAngle - dir);
+   //    toMove = BallAngle - dir;
+   // }
+   // else {
+   //    // Motor(0);
+   //    toMove = 0;
+   // }
       
 
 
@@ -84,7 +111,7 @@ void loop() {
    //    toMove = BallAngle;
    //    // Motor(BallAngle);
    // }
-   motor.run(toMove);
+   // motor.run(toMove);
    // char deb[64];
    // sprintf(deb,"ボール：%d  行く方向：%d",BallAngle,toMove);
    

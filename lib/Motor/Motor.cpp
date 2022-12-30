@@ -14,14 +14,14 @@ Motor::Motor() {
    }
 }
 
-void Motor::roll(int num, int speed) {
-   if(speed < 0) {
-      analogWrite(MotorPins[num-1][0],abs(speed));
+void Motor::roll(int num, int power) {
+   if(power < 0) {
+      analogWrite(MotorPins[num-1][0],abs(power));
       analogWrite(MotorPins[num-1][1],0);
    }
    else if (speed > 0) {
       analogWrite(MotorPins[num-1][0],0);
-      analogWrite(MotorPins[num-1][1],abs(speed)); // 2022.12.21 修正 abs付け加え
+      analogWrite(MotorPins[num-1][1],abs(power)); // 2022.12.21 修正 abs付け加え
    }
    else {
       analogWrite(MotorPins[num-1][0],255);
