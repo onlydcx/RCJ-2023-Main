@@ -12,11 +12,12 @@ void setup() {
    Gyro_init();
    motor.free();
    IR_init();
-   // while(1) {
-   //    // motor.run(180);
-   //    // IRUpdate();
-   //    Serial.println(GyroGet());
-   // }
+   while(1) {
+      speed = 100;
+      motor.run(0);
+      // IRUpdate();
+      // Serial.println(GyroGet());
+   }
 }
 
 void loop() {
