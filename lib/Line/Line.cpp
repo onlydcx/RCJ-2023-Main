@@ -14,13 +14,14 @@ Line::Line() {
 }
 
 int startCnt = 0;
+bool isFinished = false;
 
 void Line::thUpdate() {
    int MinVal[4][2] = {1023};
    int MaxVal[4][2] = {0};
-   Serial.println("キーを入力...");
-   while(Serial.available() == 0) {
-      if((Serial.available() > 0) && (startCnt == 0)) {
+   if(!isFinished) Serial.println("キーを入力...");
+   while(Serial.available() == 0 && startCnt == 0) {
+      if(Serial.available() > 0) {
          Serial.println("測定開始...");
          startCnt++;
          while(true) {
@@ -47,10 +48,11 @@ void Line::thUpdate() {
             Serial.print("},");
          }
          Serial.println(";");
+         Serial.println("終了");
+         isFinished = !isFinished;
          break;
       }
    }
-   while(true) {}
 }
 
 bool Line::isOn(int dir,int inout) {

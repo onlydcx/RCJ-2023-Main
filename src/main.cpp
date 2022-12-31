@@ -14,7 +14,9 @@ void setup() {
    Gyro_init();
    motor.free();
    IR_init();
-   line.thUpdate();
+   while(false) {
+      line.thUpdate();
+   }
 }
 
 void loop() {
