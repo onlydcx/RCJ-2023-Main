@@ -3,8 +3,10 @@
 #include "Motor.h"
 #include "IMU.h"
 #include "Ball.h"
+#include "Line.h"
 
 Motor motor;
+Line line;
 
 void setup() {
    Serial.begin(9600);
@@ -12,12 +14,7 @@ void setup() {
    Gyro_init();
    motor.free();
    IR_init();
-   while(1) {
-      speed = 100;
-      motor.run(0);
-      // IRUpdate();
-      // Serial.println(GyroGet());
-   }
+   line.thUpdate();
 }
 
 void loop() {
