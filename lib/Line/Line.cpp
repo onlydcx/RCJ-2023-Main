@@ -19,7 +19,7 @@ bool isFinished = false;
 void Line::thUpdate() {
    int MinVal[4][2] = {1023};
    int MaxVal[4][2] = {0};
-   if(!isFinished) Serial.println("キーを入力...");
+   if(!isFinished) Serial.println("\nキーを入力...");
    while(Serial.available() == 0 && startCnt == 0) {
       if(Serial.available() > 0) {
          Serial.println("測定開始...");
@@ -33,21 +33,21 @@ void Line::thUpdate() {
                }
             }
             if(Serial.available() > 1) {
-               Serial.println("測定終了");
+               Serial.println("測定終了\n");
                break;
             }
          }
-         Serial.print("int thlesholds[4][2] = ");
+         Serial.print("int thlesholds[4][2] = {");
          for(int i = 0; i < 4; i++) {
             Serial.print("{");
             for(int j = 0; j < 2; j++) {
                thlesholds[i][j] = MinVal[i][j] + ((MaxVal[i][j] - MinVal[i][j]) / 2);
                Serial.print(thlesholds[i][j]);
-               Serial.print(",");
+               if(j < 1) Serial.print(",");
             }
-            Serial.print("},");
+            Serial.print((i < 3)? ("},"): ("}"));
          }
-         Serial.println(";");
+         Serial.println("};\n");
          Serial.println("終了");
          isFinished = !isFinished;
          break;
