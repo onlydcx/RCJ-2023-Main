@@ -15,7 +15,8 @@ void setup() {
    motor.free();
    IR_init();
    while(true) {
-      line.thUpdate();
+      Serial.println(analogRead(LinePins[3][1]));
+      // line.thUpdate();
    }
 }
 

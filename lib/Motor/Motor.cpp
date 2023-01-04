@@ -10,8 +10,7 @@ Motor::Motor() {
       for(int j = 0; j < 2; j++) {
          pinMode(MotorPins[i][j],OUTPUT);
          analogWriteFrequency(MotorPins[i][j],1000000);
-         /// 100khzでは？？？
-
+         /// 100khzでは？？？ -> 修正済み 2023.1/4
       }
    }
 }
@@ -45,6 +44,7 @@ void Motor::stop() {
 }
 
 void Motor::turnFront() {
+   // 要調整 (特にloopで使わない事！！)
    int GY = GyroGet();
    int speed = 80;
    int diff = 15;
@@ -64,6 +64,7 @@ void Motor::turnFront() {
 }
 
 void Motor::turn(int dir, bool absolute) {
+   // 作りかけ 未実装
    int diff = 5, power = 80;
    if(absolute) {
       if(dir <= 180) {

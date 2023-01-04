@@ -1,9 +1,14 @@
 #include "Line.h"
 #include "Arduino.h"
-
-int LinePins[4][2] = {{0,0},{0,0},{3,2},{1,0}};
+// 01 23
+int LinePins[4][2] = {{13,12},{10,11},{0,1},{2,3}};
 int thlesholds[4][2] = {{300,300},{300,300},{300,300},{300,300}};
 // right front left back
+
+// 00 奥 01 手前
+// 10 手前 11 奥
+// 20 !!!　後ろ奥 21 後ろ手前
+// 30 左奥 31 左手前
 
 Line::Line() {
    for(int i = 0; i < 4; i++) {
