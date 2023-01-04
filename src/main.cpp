@@ -20,7 +20,7 @@ void setup() {
 }
 
 void loop() {
-   speed = 150;
+   speed = 100;
    IRUpdate();
    if(isNoBall) {
       motor.free();

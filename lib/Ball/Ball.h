@@ -1,5 +1,5 @@
 #ifndef __BALL_H_
-#define __BALL_H
+#define __BALL_H_
 
 extern int BallAngle;
 extern int BallStr;

@@ -110,10 +110,10 @@ void Motor::run(int angle) {
    else if ((gy < (360-diff)) && (gy >= 180)) addPower = (speed / 10);
    for(int i = 0; i < 4; i++) {
       int finalPower = speed * MPwrVector[i] + addPower;
-      // Motor::roll(i+1, finalPower);
-      Serial.print(finalPower);
-      Serial.print(" ");
+      Motor::roll(i+1, finalPower);
+      // Serial.print(finalPower);
+      // Serial.print(" ");
       // プラスとかマイナスとかじゃなくて掛け算にしてみては？？ 2022.12/29
    }
-   Serial.println("");
+   // Serial.println("");
 }
