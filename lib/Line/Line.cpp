@@ -3,6 +3,8 @@
 // 01 23
 int LinePins[4][2] = {{13,12},{10,11},{0,1},{2,3}};
 int thlesholds[4][2] = {{300,300},{300,300},{300,300},{300,300}};
+bool isOnLine[4][2] = {false};
+bool isOnAny = false, inCount = false, outCount = false;
 // right front left back
 
 // 00 奥 01 手前
@@ -63,4 +65,17 @@ void Line::thUpdate() {
 bool Line::isOn(int dir,int inout) {
    // return (analogRead(LinePins[dir][inout]) > 300)? true: false;
    return (analogRead(LinePins[dir][inout]) > (thlesholds[dir][inout]))? true: false;
+}
+
+void Line::check() {
+   int cnt = 0;
+   for(int i = 0; i < 4; i++) {
+      for(int j = 0; j < 2; j++) {
+         if(thlesholds[i][j] < analogRead(LinePins[i][j])) {
+            isOnLine[i][j] = true;
+            cnt++;
+         }
+      }
+   }
+   if(cnt > 0) isOnAny = true;
 }

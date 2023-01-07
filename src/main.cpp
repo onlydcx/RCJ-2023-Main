@@ -15,7 +15,7 @@ void setup() {
    motor.free();
    IR_init();
    while(true) {
-      Serial.println(analogRead(LinePins[3][1]));
+      // Serial.println(analogRead(LinePins[3][1]));
       // line.thUpdate();
    }
 }
@@ -23,6 +23,7 @@ void setup() {
 void loop() {
    speed = 100;
    IRUpdate();
+   line.check();
    if(isNoBall) {
       motor.free();
    }
@@ -48,8 +49,24 @@ void loop() {
             }
          }
       }
-      motor.run(toMove);
+
+      if(isOnAny) {
+         float avoidVector[4] = {270,180,90,0};
+         // 右 前 左 後
+         float Vx = 0, Vy = 0;
+         for(int i = 0; i < 4; i++) {
+            if(isOnLine[i][0] || isOnLine[i][1]) {
+               float avoid_UC = 360 - avoidvector[i] + 90; // 要確認
+               Vx += cos(avoid_UC * (PI / 180));
+               Vy += sin(avoid_UC * (PI / 180));
+            }
+         }
+         float avoidDir = atan2(Vx,Vy);
+      }
+
+      // motor.run(toMove);
    }
+
    // speed = 150;
    // IRUpdate();
    // int toMove = 0;

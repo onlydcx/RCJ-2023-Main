@@ -3,6 +3,8 @@
 
 extern int LinePins[4][2];
 extern int thlesholds[4][2];
+extern bool isOnLine[4][2];
+extern bool isOnAny;
 
 #define right 0
 #define front 1
@@ -16,6 +18,7 @@ class Line {
       Line();
       bool isOn(int dir,int inout);
       void thUpdate();
+      void check();
 };
 
 #endif
