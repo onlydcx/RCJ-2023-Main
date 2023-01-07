@@ -11,7 +11,6 @@ class Motor {
       void stop();
       void free();
       void turnFront();
-      void turn(int dir, bool absolute);
 };
 
 #endif

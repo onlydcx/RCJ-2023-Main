@@ -2,7 +2,8 @@
 #include "Arduino.h"
 // 01 23
 int LinePins[4][2] = {{13,12},{10,11},{0,1},{2,3}};
-int thlesholds[4][2] = {{300,300},{300,300},{300,300},{300,300}};
+// int thlesholds[4][2] = {{300,300},{300,300},{300,300},{300,300}};
+int thlesholds[4][2] = {1023};
 bool isOnLine[4][2] = {false};
 bool isOnAny = false, inCount = false, outCount = false;
 // right front left back
@@ -74,6 +75,9 @@ void Line::check() {
          if(thlesholds[i][j] < analogRead(LinePins[i][j])) {
             isOnLine[i][j] = true;
             cnt++;
+         }
+         else {
+            isOnLine[i][j] = false;
          }
       }
    }

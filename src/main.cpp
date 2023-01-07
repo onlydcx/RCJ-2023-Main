@@ -5,6 +5,12 @@
 #include "Ball.h"
 #include "Line.h"
 
+#define isRight isOnLine[0][0] || isOnLine[0][1]
+#define isFront isOnLine[1][0] || isOnLine[1][1]
+#define isLeft isOnLine[2][0] || isOnLine[2][1]
+#define isBack isOnLine[3][0] || isOnLine[3][1]
+
+
 Motor motor;
 Line line;
 
@@ -14,15 +20,12 @@ void setup() {
    Gyro_init();
    motor.free();
    IR_init();
-   while(true) {
-      // Serial.println(analogRead(LinePins[3][1]));
-      // line.thUpdate();
-   }
 }
 
 void loop() {
    speed = 100;
    IRUpdate();
+   // motor.turnFront();
    line.check();
    if(isNoBall) {
       motor.free();
@@ -50,21 +53,62 @@ void loop() {
          }
       }
 
-      if(isOnAny) {
-         float avoidVector[4] = {270,180,90,0};
-         // 右 前 左 後
-         float Vx = 0, Vy = 0;
-         for(int i = 0; i < 4; i++) {
-            if(isOnLine[i][0] || isOnLine[i][1]) {
-               float avoid_UC = 360 - avoidvector[i] + 90; // 要確認
-               Vx += cos(avoid_UC * (PI / 180));
-               Vy += sin(avoid_UC * (PI / 180));
+      if(false) {
+         // if(isRight) toMove = 270;
+         // if(isFront) toMove = 180;
+         // if(isLeft) toMove = 90;
+         // if(isBack) toMove = 0;
+         int dltime = 200;
+         if(isFront) { 
+            motor.run(180);
+            delay(dltime);
+            int time = millis();
+            while(((millis() - time) < 3000) && (BallAngle <= 90 || BallAngle >= 270)) { 
+               motor.stop();
+               IRUpdate();
+               if(BallAngle >= 90 && BallAngle <= 270) {
+                  break;
+               } 
             }
          }
-         float avoidDir = atan2(Vx,Vy);
+         if(isRight) {
+            motor.run(270);
+            delay(dltime);
+            int time = millis(); 
+            while(((millis() - time) < 3000) && (BallAngle <= 180 && BallAngle >= 0)) {
+               motor.stop();
+               IRUpdate();
+               if(BallAngle >= 180) {
+                  break;
+               } 
+            }
+         }
+         if(isBack) {
+            motor.run(0);
+            delay(dltime);
+            int time = millis(); 
+            while(((millis() - time) < 3000) && (BallAngle <= 270 && BallAngle >= 90)) {
+               motor.stop();
+               IRUpdate();
+               if(BallAngle >= 270 || BallAngle <= 90) {
+                  break;
+               } 
+            }
+         }
+         if(isLeft) {
+            motor.run(90);
+            delay(dltime);
+            int time = millis(); 
+            while(((millis() - time) < 3000) && (BallAngle >= 180)) {
+               motor.stop();
+               IRUpdate();
+               if(BallAngle >= 0 && BallAngle <= 180) {
+                  break;
+               }
+            }
+         }
       }
-
-      // motor.run(toMove);
+      motor.run(toMove);
    }
 
    // speed = 150;

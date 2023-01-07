@@ -44,50 +44,15 @@ void Motor::stop() {
 }
 
 void Motor::turnFront() {
-   // 要調整 (特にloopで使わない事！！)
    int GY = GyroGet();
-   int speed = 80;
-   int diff = 15;
-   while((GY > diff) || ((360 - diff) > GY)) {
-      if(180 > GY) speed = -abs(speed);
-      else speed = abs(speed);
-      for(int i = 0; i < 4; i++) {
-         Motor::roll(i+1,speed);
-      }
-      GY = GyroGet();
-      if((GY < diff) || ((360 - diff) < GY)) {
-         Motor::stop();
-         delay(100);
-         break;
-      }
+   int speed = 100;
+   if(180 > GY) speed *= -1;
+   for(int i = 0; i < 4; i++) {
+      Motor::roll(i+1,speed);
    }
 }
 
-void Motor::turn(int dir, bool absolute) {
-   // 作りかけ 未実装
-   int diff = 5, power = 80;
-   if(absolute) {
-      if(dir <= 180) {
-         while((GyroGet() < (dir - diff))) {
-            for(int i = 0; i < 4; i++) {
-               Motor::roll(i+1,power);
-            }
-            if(GyroGet() > (dir - diff)) break;
-         }
-      }
-      else if (dir > 180) {
-         while(GyroGet() >= (dir + diff)) {
-            for(int i = 0; i < 4; i++) {
-               Motor::roll(i+1,-power);
-            }
-            if(GyroGet() <= (dir + diff)) break;
-         }
-      }
-      for(int i = 0; i < 4; i++) {
-         Motor::roll(i+1,0);
-      }
-   }
-}
+
 
 void Motor::run(int angle) {
    int MotorAngle[4] = {40, 140, 225, 315};
@@ -104,11 +69,21 @@ void Motor::run(int angle) {
          MPwrVector[i] *= (1 / MPwrMax);
       }
    }
-   int diff = 5;
+
    int gy = GyroGet(), addPower = 0;
+
+   while((gy > 45) && (315 > gy)) {
+      Motor::turnFront();
+      gy = GyroGet();
+      if((gy < 45) || (315 < gy)) {
+         Motor::stop();
+         break;
+      }
+   }
+
    // 30 good
-   if((gy >= diff) && (gy < 180)) addPower = -(speed / 10);
-   else if ((gy < (360-diff)) && (gy >= 180)) addPower = (speed / 10);
+   if((gy >= 10) && (gy < 180)) addPower = -10;
+   else if ((gy < 350) && (gy >= 180)) addPower = 10;
    for(int i = 0; i < 4; i++) {
       int finalPower = speed * MPwrVector[i] + addPower;
       Motor::roll(i+1, finalPower);
